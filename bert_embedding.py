@@ -65,6 +65,21 @@ class Bert(object):
         self.batch_size = batch_size
         self.use_one_hot_embeddings = use_one_hot_embeddings
 
+        model_fn = self.model_fn_builder(
+            bert_config=self.bert_config,
+            init_checkpoint=self.init_checkpoint,
+            layer_indexes=self.layer_indexes,
+            use_tpu=self.use_tpu,
+            use_one_hot_embeddings=self.use_one_hot_embeddings)
+
+        # If TPU is not available, this will fall back to normal Estimator on CPU
+        # or GPU.
+        self.estimator = tf.contrib.tpu.TPUEstimator(
+            use_tpu=self.use_tpu,
+            model_fn=model_fn,
+            config=self.run_config,
+            predict_batch_size=self.batch_size)
+
     class InputExample(object):
 
         def __init__(self, unique_id, text_a, text_b):
@@ -328,26 +343,11 @@ class Bert(object):
         for feature in features:
             unique_id_to_feature[feature.unique_id] = feature
 
-        model_fn = self.model_fn_builder(
-            bert_config=self.bert_config,
-            init_checkpoint=self.init_checkpoint,
-            layer_indexes=self.layer_indexes,
-            use_tpu=self.use_tpu,
-            use_one_hot_embeddings=self.use_one_hot_embeddings)
-
-        # If TPU is not available, this will fall back to normal Estimator on CPU
-        # or GPU.
-        estimator = tf.contrib.tpu.TPUEstimator(
-            use_tpu=self.use_tpu,
-            model_fn=model_fn,
-            config=self.run_config,
-            predict_batch_size=self.batch_size)
-
         input_fn = self.input_fn_builder(
             features=features, seq_length=max_seq_length)
 
         output = []
-        for result in estimator.predict(input_fn, yield_single_examples=True):
+        for result in self.estimator.predict(input_fn, yield_single_examples=True):
             unique_id = int(result["unique_id"])
             feature = unique_id_to_feature[unique_id]
             output_json = collections.OrderedDict()
