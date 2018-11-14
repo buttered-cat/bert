@@ -39,7 +39,7 @@ class BertConfig(object):
                hidden_act="gelu",
                hidden_dropout_prob=0.1,
                attention_probs_dropout_prob=0.1,
-               max_position_embeddings=512,
+               max_position_embeddings=2000,
                type_vocab_size=16,
                initializer_range=0.02):
     """Constructs BertConfig.
