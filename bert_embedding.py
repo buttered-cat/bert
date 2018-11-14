@@ -40,7 +40,7 @@ class Bert(object):
             num_tpu_cores=8,
             use_one_hot_embeddings=False
     ):
-        tf.logging.set_verbosity(tf.logging.INFO)
+        # tf.logging.set_verbosity(tf.logging.INFO)
 
         self.layer_indexes = [int(x) for x in requested_layers.split(",")]
 
