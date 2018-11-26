@@ -357,6 +357,8 @@ class Bert(object):
         return examples
 
     def get_embedded_vectors(self, sentence_list, max_seq_length):
+        # DO NOT pass too many sentences at one call, the redundant padding caused by which may affect performance
+        # TODO: performance optimization: padding inside the batch.
         output = []
 
         if len(sentence_list) == 0:
