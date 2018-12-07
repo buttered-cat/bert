@@ -56,7 +56,7 @@ class BertConfig(object):
                  hidden_act="gelu",
                  hidden_dropout_prob=0.1,
                  attention_probs_dropout_prob=0.1,
-                 max_position_embeddings=4096,
+                 max_position_embeddings=512,
                  type_vocab_size=16,
                  initializer_range=0.02):
         """Constructs BertConfig.
@@ -202,18 +202,16 @@ class BertModel(object):
             dtype=tf.int32
         )
 
-        shape_input = tf.shape(self.input_ids)
-
         self.input_mask = tf.placeholder(
             name='input_mask',
-            shape=[shape_input[0], shape_input[1]],
+            shape=[None, None],
             dtype=tf.int32
         )
 
         self.token_type_ids = tf.placeholder(
             name='token_type_ids',
-            shape=[shape_input[0], shape_input[1]],
-
+            shape=[None, None],
+            dtype=tf.int32
         )
 
         with tf.variable_scope(scope, default_name="bert"):
@@ -236,7 +234,7 @@ class BertModel(object):
                     use_position_embeddings=True,
                     position_embedding_name="position_embeddings",
                     # initializer_range=self.initializer_range,
-                    max_position_embeddings=config.max_position_embeddings,
+                    max_position_embeddings=self.max_position_embeddings,
                     # dropout_prob=config.hidden_dropout_prob
                 )
 
@@ -307,11 +305,24 @@ class BertModel(object):
         all_input_mask = []
         all_input_type_ids = []
 
+        max_len = 0
         for feature in batch_features:
             all_unique_ids.append(feature.unique_id)
             all_input_ids.append(feature.input_ids)
             all_input_mask.append(feature.input_mask)
             all_input_type_ids.append(feature.input_type_ids)
+            if max_len < len(feature.input_ids):
+                max_len = len(feature.input_ids)
+
+        if max_len > self.max_position_embeddings:
+            # raise ValueError(
+            #     "The seq length (%d) cannot be greater than `max_position_embeddings` (%d)"
+            #     % (max_len, self.max_position_embeddings)
+            # )
+            print(
+                "WARNING: The seq length (%d) is greater than `max_position_embeddings` (%d), "
+                "which may cause problems." % (max_len, self.max_position_embeddings)
+            )
 
         # all_layers: num_layers * batch_size * max_seq_len * hidden_size
         all_layers = sess.run(
@@ -414,7 +425,7 @@ class BertModel(object):
             use_position_embeddings=True,
             position_embedding_name="position_embeddings",
             # initializer_range=0.02,
-            max_position_embeddings=2000,
+            max_position_embeddings=512,
             # dropout_prob=0.1
     ):
         """Performs various post-processing on a word embedding tensor.
@@ -449,11 +460,6 @@ class BertModel(object):
         seq_length = input_shape[1]
         width = input_shape[2]
 
-        if seq_length > max_position_embeddings:
-            raise ValueError("The seq length (%d) cannot be greater than "
-                             "`max_position_embeddings` (%d)" %
-                             (seq_length, max_position_embeddings))
-
         output = input_tensor
 
         if use_token_type:
@@ -487,11 +493,23 @@ class BertModel(object):
             # for position [0, 1, 2, ..., max_position_embeddings-1], and the current
             # sequence has positions [0, 1, 2, ... seq_length-1], so we can just
             # perform a slice.
-            if seq_length < max_position_embeddings:
-                position_embeddings = tf.slice(full_position_embeddings, [0, 0],
-                                               [seq_length, -1])
-            else:
-                position_embeddings = full_position_embeddings
+            # TODO: possible optimization point when training/fine-tuning.
+            # if seq_length < max_position_embeddings:
+            #     position_embeddings = tf.slice(full_position_embeddings, [0, 0],
+            #                                    [seq_length, -1])
+            # else:
+            #     position_embeddings = full_position_embeddings
+
+            def slice():
+                return tf.slice(full_position_embeddings, [0, 0], [seq_length, -1])
+            def do_nothing():
+                return full_position_embeddings
+
+            position_embeddings = tf.cond(
+                tf.less(seq_length, tf.constant(max_position_embeddings)),
+                slice,
+                do_nothing,
+            )
 
             num_dims = len(output.shape.as_list())
 
@@ -981,8 +999,6 @@ def attention_layer(from_tensor,
             [batch_size, from_seq_length, num_attention_heads * size_per_head])
 
     return context_layer
-
-
 
 
 def get_shape_list(tensor, expected_rank=None, name=None):

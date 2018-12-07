@@ -73,7 +73,7 @@ class Bert(object):
         )
 
         self.init_checkpoint = init_checkpoint
-        self.use_tpu = use_tpu
+        # self.use_tpu = use_tpu
         self.batch_size = batch_size
         self.use_one_hot_embeddings = use_one_hot_embeddings
 
@@ -85,6 +85,26 @@ class Bert(object):
             # token_type_ids=input_type_ids,
             use_one_hot_embeddings=use_one_hot_embeddings
         )
+
+        tvars = tf.trainable_variables()
+        (assignment_map, initialized_variable_names) = modeling.get_assignment_map_from_checkpoint(
+            tvars,
+            init_checkpoint
+        )
+
+        tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
+
+        tf.logging.info("**** Trainable Variables ****")
+        for var in tvars:
+            init_string = ""
+            if var.name in initialized_variable_names:
+                init_string = ", *INIT_FROM_CKPT*"
+            tf.logging.info(
+                "  name = %s, shape = %s%s",
+                var.name,
+                var.shape,
+                init_string
+            )
 
         # model_fn = self.model_fn_builder(
         #     bert_config=self.bert_config,
@@ -100,6 +120,8 @@ class Bert(object):
         #     model_fn=model_fn,
         #     config=self.run_config,
         #     predict_batch_size=self.batch_size)
+
+        self.sess.run(tf.global_variables_initializer())
 
     class InputExample(object):
 
@@ -189,29 +211,29 @@ class Bert(object):
     #         if mode != tf.estimator.ModeKeys.PREDICT:
     #             raise ValueError("Only PREDICT modes are supported: %s" % (mode))
     #
-    #         tvars = tf.trainable_variables()
-    #         scaffold_fn = None
-    #         (assignment_map, initialized_variable_names) = modeling.get_assignment_map_from_checkpoint(
-    #             tvars,
-    #             init_checkpoint
-    #         )
-    #         if use_tpu:
-    #
-    #             def tpu_scaffold():
-    #                 tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
-    #                 return tf.train.Scaffold()
-    #
-    #             scaffold_fn = tpu_scaffold
-    #         else:
-    #             tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
-    #
-    #         tf.logging.info("**** Trainable Variables ****")
-    #         for var in tvars:
-    #             init_string = ""
-    #             if var.name in initialized_variable_names:
-    #                 init_string = ", *INIT_FROM_CKPT*"
-    #             tf.logging.info("  name = %s, shape = %s%s", var.name, var.shape,
-    #                             init_string)
+    #         # tvars = tf.trainable_variables()
+    #         # scaffold_fn = None
+    #         # (assignment_map, initialized_variable_names) = modeling.get_assignment_map_from_checkpoint(
+    #         #     tvars,
+    #         #     init_checkpoint
+    #         # )
+    #         # if use_tpu:
+    #         #
+    #         #     def tpu_scaffold():
+    #         #         tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
+    #         #         return tf.train.Scaffold()
+    #         #
+    #         #     scaffold_fn = tpu_scaffold
+    #         # else:
+    #         #     tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
+    #         #
+    #         # tf.logging.info("**** Trainable Variables ****")
+    #         # for var in tvars:
+    #         #     init_string = ""
+    #         #     if var.name in initialized_variable_names:
+    #         #         init_string = ", *INIT_FROM_CKPT*"
+    #         #     tf.logging.info("  name = %s, shape = %s%s", var.name, var.shape,
+    #         #                     init_string)
     #
     #         all_layers = model.get_encoder_layers()
     #
