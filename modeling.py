@@ -231,7 +231,7 @@ class BertModel(object):
                     token_type_ids=self.token_type_ids,
                     # token_type_vocab_size=config.type_vocab_size,
                     token_type_embedding_name="token_type_embeddings",
-                    use_position_embeddings=True,
+                    use_position_embeddings=False,
                     position_embedding_name="position_embeddings",
                     # initializer_range=self.initializer_range,
                     max_position_embeddings=self.max_position_embeddings,
