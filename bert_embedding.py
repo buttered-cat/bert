@@ -37,9 +37,6 @@ class Bert(object):
             sess=None,
             do_lower_case=True,
             batch_size=32,
-            use_tpu=False,
-            master=None,
-            num_tpu_cores=8,
             use_one_hot_embeddings=False
     ):
         # tf.logging.set_verbosity(tf.logging.INFO)
@@ -63,17 +60,7 @@ class Bert(object):
             do_lower_case=do_lower_case
         )
 
-        self.is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
-        self.run_config = tf.contrib.tpu.RunConfig(
-            master=master,
-            tpu_config=tf.contrib.tpu.TPUConfig(
-                num_shards=num_tpu_cores,
-                per_host_input_for_training=self.is_per_host
-            )
-        )
-
         self.init_checkpoint = init_checkpoint
-        # self.use_tpu = use_tpu
         self.batch_size = batch_size
         self.use_one_hot_embeddings = use_one_hot_embeddings
 
