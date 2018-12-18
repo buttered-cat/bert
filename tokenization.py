@@ -131,6 +131,32 @@ class FullTokenizer(object):
     return convert_by_vocab(self.inv_vocab, ids)
 
 
+class CharTokenizer(object):
+  """Runs end-to-end tokenziation."""
+
+  def __init__(self, vocab_file, do_lower_case=True, unk_token="[UNK]"):
+    self.vocab = load_vocab(vocab_file)
+    self.inv_vocab = {v: k for k, v in self.vocab.items()}
+    # self.basic_tokenizer = BasicTokenizer(do_lower_case=do_lower_case)
+    self.unk_token = unk_token
+
+  def tokenize(self, text):
+    char_tokens = []
+    for token in text:
+      if token in self.vocab:
+        char_tokens.append(token)
+      else:
+        char_tokens.append(self.unk_token)
+
+    return char_tokens
+
+  def convert_tokens_to_ids(self, tokens):
+    return convert_by_vocab(self.vocab, tokens)
+
+  def convert_ids_to_tokens(self, ids):
+    return convert_by_vocab(self.inv_vocab, ids)
+
+
 class BasicTokenizer(object):
   """Runs basic tokenization (punctuation splitting, lower casing, etc.)."""
 

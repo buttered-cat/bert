@@ -55,7 +55,7 @@ class Bert(object):
 
         self.bert_config = modeling.BertConfig.from_json_file(bert_config_file)
 
-        self.tokenizer = tokenization.FullTokenizer(
+        self.tokenizer = tokenization.CharTokenizer(
             vocab_file=vocab_file,
             do_lower_case=do_lower_case
         )
@@ -239,6 +239,8 @@ class Bert(object):
 
     def convert_examples_to_features(self, examples, seq_length, tokenizer):
         """Loads a data file into a list of `InputBatch`s."""
+        # The returned result has lengths of seq_length + 2 because of [CLS] and [SEP].
+        seq_length += 2
 
         features = []
         for (ex_index, example) in enumerate(examples):
@@ -253,10 +255,10 @@ class Bert(object):
                 # length is less than the specified length.
                 # Account for [CLS], [SEP], [SEP] with "- 3"
                 self._truncate_seq_pair(tokens_a, tokens_b, seq_length - 3)
-            else:
-                # Account for [CLS] and [SEP] with "- 2"
-                if len(tokens_a) > seq_length - 2:
-                    tokens_a = tokens_a[0:(seq_length - 2)]
+            # else:
+            #     # Account for [CLS] and [SEP] with "- 2"
+            #     if len(tokens_a) > seq_length - 2:
+            #         tokens_a = tokens_a[0:(seq_length - 2)]
 
             # The convention in BERT is:
             # (a) For sequence pairs:
@@ -367,6 +369,7 @@ class Bert(object):
 
     def get_embedded_vectors(self, sentence_list, max_seq_length):
         # DO NOT pass too many sentences at one call, the redundant padding caused by which may affect performance
+        # The returned result has lengths of max_seq_length + 2 because of [CLS] and [SEP].
         # TODO: performance optimization: padding inside the batch.
         output = []
 
