@@ -55,7 +55,7 @@ class Bert(object):
 
         self.bert_config = modeling.BertConfig.from_json_file(bert_config_file)
 
-        self.tokenizer = tokenization.CharTokenizer(
+        self.tokenizer = tokenization.FullTokenizer(
             vocab_file=vocab_file,
             do_lower_case=do_lower_case
         )
