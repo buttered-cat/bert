@@ -157,7 +157,7 @@ class FullTokenizerWithTags(object):
             for sub_token in self.wordpiece_tokenizer.tokenize(token):
                 split_tokens.append(sub_token)
 
-        return split_tokens
+        return split_tokens, char_level_tags
 
     def convert_tokens_to_ids(self, tokens):
         return convert_by_vocab(self.vocab, tokens)
