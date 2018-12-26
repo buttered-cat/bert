@@ -526,7 +526,14 @@ class BasicTokenizerWithTags(object):
             else:
                 char_output.append(char)
                 tag_output.append(tag)
-        assert len(char_output) == len(tag_output) + skipped_char_count
+        try:
+            assert len(char_output) == len(tag_output) + skipped_char_count
+        except AssertionError as e:
+            print(text)
+            print(len(text))
+            print(len(char_output), len(tag_output), skipped_char_count)
+            raise e
+
         return "".join(char_output), tag_output
 
 
