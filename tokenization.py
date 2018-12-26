@@ -512,7 +512,7 @@ class BasicTokenizerWithTags(object):
         for char, tag in zip(text, char_level_tags):
             cp = ord(char)
             if cp == 0 or cp == 0xfffd or _is_control(char):
-                skipped_char_count += 1
+                # skipped_char_count += 1
                 continue
 
             cat = unicodedata.category(char)
