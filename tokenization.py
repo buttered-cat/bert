@@ -432,19 +432,16 @@ class BasicTokenizerWithTags(object):
 
         return output_tokens, char_level_tags
 
-    def _run_strip_accents(self, text, char_level_tags):
+    def _run_strip_accents(self, text):
         """Strips accents from a piece of text."""
         text = unicodedata.normalize("NFD", text)
-        char_output = []
-        tag_output = []
-        for char, tag in zip(text, char_level_tags):
+        output = []
+        for char in text:
             cat = unicodedata.category(char)
             if cat == "Mn":
                 continue
-            char_output.append(char)
-            tag_output.append(tag)
-
-        return "".join(char_output)
+            output.append(char)
+        return "".join(output)
 
     def _run_split_on_punc(self, text):
         """Splits punctuation on a piece of text."""
@@ -507,7 +504,8 @@ class BasicTokenizerWithTags(object):
         tag_output = []
         skipped_char_count = 0
 
-        text = unicodedata.normalize("NFD", text)
+        text = self._run_strip_accents(text)
+        # text = unicodedata.normalize("NFD", text)
 
         for char, tag in zip(text, char_level_tags):
             cp = ord(char)
