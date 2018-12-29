@@ -507,6 +507,15 @@ class BasicTokenizerWithTags(object):
         text = self._run_strip_accents(text)
         # text = unicodedata.normalize("NFD", text)
 
+        try:
+            assert len(text) == len(char_level_tags)
+        except AssertionError as e:
+            print(text)
+            print(char_level_tags)
+            print(len(text))
+            print(len(char_level_tags))
+            raise e
+
         for char, tag in zip(text, char_level_tags):
             cp = ord(char)
             if cp == 0 or cp == 0xfffd or _is_control(char):
