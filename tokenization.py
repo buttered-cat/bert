@@ -167,7 +167,7 @@ class FullTokenizerWithTags(object):
 
 
 class CharTokenizer(object):
-    """Runs end-to-end tokenziation."""
+    """Runs character-wise tokenziation."""
 
     def __init__(self, vocab_file, do_lower_case=True, unk_token="[UNK]"):
         self.vocab = load_vocab(vocab_file)
